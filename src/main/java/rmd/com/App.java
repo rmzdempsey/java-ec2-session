@@ -24,6 +24,14 @@ public class App
             cnt = listEC2InstanceStatuses();
 
             System.out.println("CNT="+cnt);
+
+            cnt = listEC2KeyPairs();
+
+            System.out.println("CNT="+cnt);
+
+            KeyPair kp = createEC2KeyPair( cnt );
+
+            System.out.println("KP = "+ kp.toString() );
         }
         catch( Exception ex ){
             ex.printStackTrace();
@@ -72,6 +80,38 @@ public class App
                 .count();
 
 
+    }
+
+    private static long listEC2KeyPairs() throws Exception{
+
+        return ec2Instance()
+                .describeKeyPairs()
+                .getKeyPairs()
+                .stream()
+                .peek(kp->
+                        System.out.println(
+                                String.format(
+                                        "Name %s %s",
+                                        kp.getKeyName(),
+                                        kp.getKeyFingerprint()
+                                )
+                        )
+                )
+                .count();
+
+
+    }
+
+    private static KeyPair createEC2KeyPair( long id) throws Exception{
+
+        return ec2Instance()
+                .createKeyPair(
+                        new CreateKeyPairRequest()
+                                .withKeyName(
+                                        String.format("aws-test-%d", id)
+                                )
+                        )
+                .getKeyPair();
     }
 
     private static AWSCredentials getCredentials(){
