@@ -17,30 +17,61 @@ public class App
     public static void main( String[] args )
     {
         try {
-            AmazonEC2 ec2 = AmazonEC2ClientBuilder.defaultClient();
+            long cnt = listEC2Instances();
 
-            DescribeInstancesRequest req = new DescribeInstancesRequest();
+            System.out.println("CNT="+cnt);
 
-            DescribeInstancesResult res = ec2.describeInstances(req);
+            cnt = listEC2InstanceStatuses();
 
-            res.getReservations().forEach(r->System.out.println(
-                    String.format("reservervationId=%s ownerId=%s",r.getReservationId(), r.getOwnerId())
-            ));
-
-//            AWSCredentials creds = getCredentials();
-//            System.out.println("creds = " + creds);
-
-//            AmazonEC2 ec2 = getEC2Client(creds);
-
-//            String securityGroupId = createSecurityGroup( ec2, "rmdSGFromSDLTest", "created by awtest project");
-//
-//            System.out.println("security group = " + securityGroupId );
-//
-//            assignSSHInboundRuleToSecurityGroup(ec2,securityGroupId);
+            System.out.println("CNT="+cnt);
         }
         catch( Exception ex ){
             ex.printStackTrace();
         }
+    }
+
+    private static AmazonEC2 ec2Instance(){
+        return AmazonEC2ClientBuilder.defaultClient();
+    }
+
+    private static long listEC2Instances() throws Exception{
+
+       return ec2Instance()
+               .describeInstances(new DescribeInstancesRequest())
+               .getReservations()
+               .stream()
+               .peek(r->
+                       System.out.println(
+                            String.format(
+                                    "reservervationId=%s ownerId=%s",
+                                    r.getReservationId(),
+                                    r.getOwnerId()
+                            )
+                       )
+               )
+               .count();
+
+
+    }
+
+    private static long listEC2InstanceStatuses() throws Exception{
+
+        return ec2Instance()
+                .describeInstanceStatus(new DescribeInstanceStatusRequest())
+                .getInstanceStatuses()
+                .stream()
+                .peek(s->
+                        System.out.println(
+                                String.format(
+                                        "instance =%s status=%s",
+                                        s.getInstanceId(),
+                                        s.getInstanceState().getName()
+                                )
+                        )
+                )
+                .count();
+
+
     }
 
     private static AWSCredentials getCredentials(){
